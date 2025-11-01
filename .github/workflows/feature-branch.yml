@@ -24,3 +24,24 @@ jobs:
 
     - name: Run unit tests
       run: dotnet test ./UnitTests/*.csproj --verbosity quiet
+  
+  main-pr-on-completion:
+    runs-on: ubuntu-latest
+    needs: build
+    if: needs.build.result == 'success'
+    permissions:
+      contents: write
+      pull-requests: write
+    env:
+      GH_Token: ${{ github.token }}
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: feature
+      - name: Create pr to main from feature branch
+        run: |
+          gh pr create \
+            --base main \
+            --head feature \
+            --title "CI: Promote feature to main (#${GITHUB_RUN_NUMBER})" \
+            --body "Opened by CI after successful build & tests. Run: ${GITHUB_SERVER_URL}/${GITHUB_REPOSITORY}/actions/runs/${GITHUB_RUN_ID}"
