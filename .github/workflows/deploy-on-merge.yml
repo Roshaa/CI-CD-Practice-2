@@ -37,11 +37,15 @@ jobs:
           path: ${{env.DOTNET_ROOT}}/myapp
 
   deploy:
+    environment: prod
     runs-on: windows-latest
     needs: build
     permissions:
       id-token: write
       contents: read
+    concurrency:
+      group: prod
+      cancel-in-progress: false 
 
     steps:
       - name: Download artifact from build job
